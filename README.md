@@ -30,10 +30,5 @@ The dataset is a subset of [Kuljanin et al.](https://www.nature.com/articles/s41
 | SMILES | Correspondinng SMILES of reactive fragment |
 | ECFP4 | Corresponding ECFP4 features |
 
-## Task
-Your task is to develop a machine learning model that can accurately predict the competition ratio of the tuple (reactive fragment, target protein). You can use any machine learning algorithm or approach that you prefer.
 
-## Deliverables
-- A Python package contains your data preprocessing, feature engineering, and machine learning model implementation.
-- A short write up that explains your general approach, discusses any insights on data splitting, and presents the results of your model evaluation
 # qstar
