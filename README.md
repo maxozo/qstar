@@ -29,6 +29,19 @@ In conclusion, to improve the model's performance, a combination of domain knowl
 
 The ML challenge involves predicting the binding affinity for peptide sequences obtained through LC-MS tryptic digest, where lysine (K) and arginine (R) residues are present at the N and C termini. Two ML methods, namely RNN and CNN, were considered suitable for this challenge. RNN is well-suited for sequential data analysis, while both CNN and RNN has previously demonstrated effectiveness in predicting protein cleavage affinities in enzymatic digests, assumtion was made that similar approach can be used for compound competition ratio predictions.
 
+
+To address the issue of peptide length not necessarily being representative of binding affinities, the peptides were standardized to a fixed length defined as feature_length*2. This was achieved by querying the Uniprot sequence database to obtain all reviewed protein sequences available on 29/05/2013. The code iterates through each protein provided in competition-ratios.tsv and each compound in compounds.txt, extracting the peptides centered around the amino acid of interest indicated in competition-ratios.tsv.
+
+For feature engineering, the amino acid sequences were encoded using one-hot encoding, with an additional positional argument for each amino acid. In the CNN model, one-hot encoding was represented as a matrix where each row corresponds to the one-hot encoding of a single amino acid.
+
+Considering the potential importance of the peptides emitted by LC-MS, the peptide sequences listed in competition-ratios.tsv were also encoded using amino acid frequency encoding, along with the positional index within the protein sequence. Although the positional index may not be highly informative, it captures different functional domains present in proteins that may not be represented solely by the position within the sequence.
+
+In addition to the sequence and amino acid frequency encoding, the ECFP_4 string was included as a feature, as specific side chains may chemically interact with the protein to facilitate binding.
+
+The code was designed to allow for the evaluation of different learning rates, dropout rates, feature lengths, and L2 regularization methods.
+
+The protein datasets can be predicted using the predict_protein.py code by providing the compound ID and protein ID as a tuple. This will encode the sequence accordingly and predict the binding affinities for the model.
+
 Two arhitectures that were considered are: 
 ### RNN
 The model described here is a sequential neural network architecture used for regression tasks. It consists of multiple layers, including a bidirectional LSTM layer, dense layers, and dropout layers.
@@ -77,17 +90,6 @@ Overall, this model architecture combines a CNN for image feature extraction wit
 Similar approaches combining CNNs and auxiliary data have been used in the field of proteomics for various tasks. For example, in protein structure prediction, CNNs have been employed to analyze protein sequences or structural motifs, while auxiliary data such as evolutionary conservation scores or physicochemical properties have been used to enrich the model's understanding of protein structure. The combination of image-based features and auxiliary data allows for a more comprehensive representation of the proteins and can improve predictive performance in various proteomic applications.
 
 
-To address the issue of peptide length not necessarily being representative of binding affinities, the peptides were standardized to a fixed length defined as feature_length*2. This was achieved by querying the Uniprot sequence database to obtain all reviewed protein sequences available on 29/05/2013. The code iterates through each protein provided in competition-ratios.tsv and each compound in compounds.txt, extracting the peptides centered around the amino acid of interest indicated in competition-ratios.tsv.
-
-For feature engineering, the amino acid sequences were encoded using one-hot encoding, with an additional positional argument for each amino acid. In the CNN model, one-hot encoding was represented as a matrix where each row corresponds to the one-hot encoding of a single amino acid.
-
-Considering the potential importance of the peptides emitted by LC-MS, the peptide sequences listed in competition-ratios.tsv were also encoded using amino acid frequency encoding, along with the positional index within the protein sequence. Although the positional index may not be highly informative, it captures different functional domains present in proteins that may not be represented solely by the position within the sequence.
-
-In addition to the sequence and amino acid frequency encoding, the ECFP_4 string was included as a feature, as specific side chains may chemically interact with the protein to facilitate binding.
-
-The code was designed to allow for the evaluation of different learning rates, dropout rates, feature lengths, and L2 regularization methods.
-
-The protein datasets can be predicted using the predict_protein.py code by providing the compound ID and protein ID as a tuple. This will encode the sequence accordingly and predict the binding affinities for the model.
 
 ## Dataset
 The dataset is a subset of [Kuljanin et al.](https://www.nature.com/articles/s41587-020-00778-3) and consists of a set of reactive fragments and their corresponding binding affinities to specific protein targets (Dataset9):
