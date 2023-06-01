@@ -11,7 +11,7 @@ Develop a machine learning model to predict the binding affinities of reactive f
 The ML challenge involves predicting the binding affinity for peptide sequences obtained through LC-MS tryptic digest, where lysine (K) and arginine (R) residues are present at the N and C termini. Two ML methods, namely RNN and CNN, were considered suitable for this challenge. RNN is well-suited for sequential data analysis, while both CNN and RNN has previously demonstrated effectiveness in predicting protein cleavage affinities in enzymatic digests, assumtion was made that similar approach can be used for compound competition ratio predictions.
 
 Two arhitectures that were considered are: 
-# RNN
+### RNN
 The model described here is a sequential neural network architecture used for regression tasks. It consists of multiple layers, including a bidirectional LSTM layer, dense layers, and dropout layers.
 
 Here's a breakdown of the model architecture and its components:
@@ -36,7 +36,7 @@ The early_stopping callback is applied to monitor the validation loss and stop t
 
 In the field of proteomics, similar approaches involving deep learning and neural networks have been used for various tasks. For example, recurrent neural networks (RNNs), including LSTM layers, have been utilized for protein sequence analysis, such as protein classification, prediction of protein properties, and protein-protein interaction prediction. The bidirectional aspect of LSTMs helps capture dependencies in both directions and improves the modeling of sequential data. Additionally, the use of dense layers and dropout regularization aids in learning complex patterns and preventing overfitting in proteomic data analysis. Overall, deep learning models like the one described have shown promising results in proteomics research by leveraging the inherent sequential nature of protein data.
 
-# CNN
+### CNN
 Early Stopping: The model uses early stopping as a regularization technique to prevent overfitting. It monitors the validation loss during training and stops the training process if the loss does not improve for a certain number of epochs (defined by the patience parameter).
 
 Model Definition: The model architecture is defined using Keras, a high-level neural networks API. The model has two types of input data: image data and auxiliary data. The image input shape is (20, 22, 1), indicating an input image with dimensions of 20x22 pixels and a single channel. The auxiliary input shape is determined by the shape of aux_data_test.
