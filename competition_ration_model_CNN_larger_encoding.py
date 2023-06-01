@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-
 __date__ = '2023-30-05'
 __version__ = '0.0.1'
+__author__ = 'M.Ozols'
 
+import matplotlib.pyplot as plt 
 from tensorflow.keras.layers import Embedding
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, LSTM, Bidirectional,Dropout
@@ -16,15 +17,22 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_curve, auc
 # from gensim.models import Word2Vec
 import requests
+from pickle import dump
 import re
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import pickle
-
+import tensorflow as tf
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Concatenate,Dropout
+from keras.layers import Conv1D, MaxPooling1D, GlobalMaxPooling1D, Dense, Dropout
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import EarlyStopping
+from keras.regularizers import l1,l2
 # This code is used to train the model that is capable in taking a the tuple (reactive fragment, target protein) and 
 # acuratelly predict the competition ratio of 286 compounds (reactive fragments) listed in data/compounds.txt
 
 # The input is a tuple where we have ('reactive fragmant','protein') 
-predicting_tuple = ('CL1','GSTO1_HUMAN')
+# predicting_tuple = ('CL1','GSTO1_HUMAN')
 
 
 def get_protein_sequence(uniprot_id,get_protein_sequence):
@@ -245,7 +253,7 @@ def train_model(dropout,l2_reguliser,lr,batch_size,fragment_size):
     X_test = np.array([sample[0] for sample in test_data])
     y_test = np.array([sample[1] for sample in test_data])    
     aux_data_test = np.array([sample[2] for sample in test_data]) 
-    # once we have a combined representations of the encoded_peptide_representation of ecfp4 and the peptide encoding for each of the compoundsand their coresponding binding afinity values 
+    # Once we have a combined representations of the encoded_peptide_representation of ecfp4 and the peptide encoding for each of the compoundsand their coresponding binding afinity values 
     # we can partition the data and train multiple deep learning/ml methods to estimate which would be the most performant.
     
     # Standardize the input features
@@ -254,61 +262,12 @@ def train_model(dropout,l2_reguliser,lr,batch_size,fragment_size):
     # scaler.inverse_transform(Y_train_scaled.reshape(-1, 1))
     combined_shape = X_train.shape[1]  # Assuming ecfp4_fingerprint is the fixed-length ECFP4 string
     Y_test_scaled = scaler.transform(y_test.reshape(-1, 1))
-    from pickle import dump
+
     dump(scaler, open(f'output_model_One_CNN_epochs10_all_data_{coment}__{fragment_size}__{dropout}_{l2_reguliser}_{lr}_{batch_size}_scaler.pkl', 'wb'))
     
     # # Reshape input data to match LSTM input shape
     X_train_reshaped = X_train.reshape(-1, 1, combined_shape)
     X_test_reshaped = X_test.reshape(-1, 1, combined_shape)
-
-    # input_shape = X_train.shape[1:]  # Shape of the combined representation
-    # X_train_reshaped = X_train.reshape(-1, input_shape[0], input_shape[1])
-    # X_test_reshaped = X_test.reshape(-1, input_shape[0], input_shape[1])
-
-
-    # del X_train_reshaped 
-    # del Y_train_scaled
-
-    # with open("X_train_split.pkl", "wb") as fp:   #Pickling
-    #     pickle.dump(X_train_split, fp)
-    # with open("X_val_split.pkl", "wb") as fp:   #Pickling
-    #     pickle.dump(X_val_split, fp)
-    # with open("y_train_split.pkl", "wb") as fp:   #Pickling
-    #     pickle.dump(y_train_split, fp)
-    # with open("y_val_split.pkl", "wb") as fp:   #Pickling
-    #     pickle.dump(y_val_split, fp)
-    # with open("X_test_reshaped.pkl", "wb") as fp:   #Pickling
-    #     pickle.dump(X_test_reshaped, fp)
-    # with open("Y_test_scaled.pkl", "wb") as fp:   #Pickling
-    #     pickle.dump(Y_test_scaled, fp)
-
-
-    # with open("X_train_split.pkl", "rb") as fp:   # Unpickling
-    #     X_train_split = pickle.load(fp)
-    # with open("X_val_split.pkl", "rb") as fp:   # Unpickling
-    #     X_val_split = pickle.load(fp)
-    # with open("y_train_split.pkl", "rb") as fp:   # Unpickling
-    #     y_train_split = pickle.load(fp)
-    # with open("y_val_split.pkl", "rb") as fp:   # Unpickling
-    #     y_val_split = pickle.load(fp)
-    # with open("X_test_reshaped.pkl", "rb") as fp:   # Unpickling
-    #     X_test_reshaped = pickle.load(fp)
-    # with open("Y_test_scaled.pkl", "rb") as fp:   # Unpickling
-    #     Y_test_scaled = pickle.load(fp)
-
-
-    
-    # Create the Random Forest model
-    # modelq = RandomForestRegressor(random_state=42)
-    # modelq.fit(X_train_split, y_train_split)
-    # model = SVR()
-    import tensorflow as tf
-    from tensorflow.keras.models import Model
-    from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Concatenate,Dropout
-    from keras.layers import Conv1D, MaxPooling1D, GlobalMaxPooling1D, Dense, Dropout
-    from tensorflow.keras.optimizers import Adam
-    from tensorflow.keras.callbacks import EarlyStopping
-    from keras.regularizers import l1,l2
     
     early_stopping = EarlyStopping(
         monitor='val_loss',
@@ -364,7 +323,7 @@ def train_model(dropout,l2_reguliser,lr,batch_size,fragment_size):
     print("Mean Absolute Error (MAE):", mae)
     print("R-squared (R2) Score:", r2)
     
-    import matplotlib.pyplot as plt 
+
     # Extract training and validation loss
     train_loss = history.history['loss']
     val_loss = history.history['val_loss']
@@ -382,11 +341,6 @@ def train_model(dropout,l2_reguliser,lr,batch_size,fragment_size):
 
 if __name__ == "__main__":
     import argparse
-    # Defaults
-    dropout=0.2
-    l2_reguliser=0.001
-    lr=0.001
-    batch_size=32
     
     # Take different params for training
     """Run CLI."""

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-
-
 __date__ = '2023-30-05'
 __version__ = '0.0.1'
+__author__ = 'M.Ozols'
+
 # This code will take the model and a tuple of protein name and compound and predict each of the C aa competition ratios.
 import tensorflow as tf
 from functions import get_protein_sequence
@@ -14,6 +14,9 @@ from sklearn.preprocessing import StandardScaler
 from pickle import load
 import os
 cwd = os.path.dirname(os.path.realpath(__file__))
+
+
+
 def predict_protein(predicting_tuple,model):
     
     scaler = load(open(f'{cwd}/models/output_model_One_Bi-LSTM_epochs10_all_data_all_compounds_first2000__10__0.1_0.0001_0.001_32_scaler.pkl', 'rb'))

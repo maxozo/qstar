@@ -1,25 +1,23 @@
 #!/usr/bin/env python
 
-
 __date__ = '2023-30-05'
 __version__ = '0.0.1'
+__author__ = 'M.Ozols'
 
 from tensorflow.keras.layers import Embedding
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, LSTM, Bidirectional,Dropout
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.svm import SVR
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_curve, auc
-# from gensim.models import Word2Vec
 import requests
 import re
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import pickle
-
+import matplotlib.pyplot as plt 
+from pickle import dump
 # This code is used to train the model that is capable in taking a the tuple (reactive fragment, target protein) and 
 # acuratelly predict the competition ratio of 286 compounds (reactive fragments) listed in data/compounds.txt
 
@@ -113,45 +111,45 @@ def train_model(dropout,l2_reguliser,lr,batch_size):
     prev_protein = ''
     
     longest_peptide = max(list(sequence_infos['Peptide Sequence']), key=len)
-    # for idx,row1 in sequence_infos.iterrows():
-    #     print(idx)
-    #     if idx==213:
-    #         print('ere')
-    #     peptide = sequence_infos.iloc[idx]['Peptide Sequence']
-    #     uniprot_id = sequence_infos.iloc[idx]['Uniprot ID'].split('|')[1]
+    for idx,row1 in sequence_infos.iterrows():
+        print(idx)
+        if idx==213:
+            print('ere')
+        peptide = sequence_infos.iloc[idx]['Peptide Sequence']
+        uniprot_id = sequence_infos.iloc[idx]['Uniprot ID'].split('|')[1]
         
-    #     position_of_site = sequence_infos.iloc[idx]['Gene + Site'].split('_')[1]
-    #     # print(f'{prev_protein}=={uniprot_id}')
-    #     if not prev_protein==uniprot_id:
-    #         protein_sequence = get_protein_sequence(uniprot_id,all_protein_sequences)
-    #         prev_protein=uniprot_id
-    #     if protein_sequence == None:
-    #         continue
+        position_of_site = sequence_infos.iloc[idx]['Gene + Site'].split('_')[1]
+        # print(f'{prev_protein}=={uniprot_id}')
+        if not prev_protein==uniprot_id:
+            protein_sequence = get_protein_sequence(uniprot_id,all_protein_sequences)
+            prev_protein=uniprot_id
+        if protein_sequence == None:
+            continue
         
-    #     compounds = pd.DataFrame(binding_afinities.iloc[idx])
+        compounds = pd.DataFrame(binding_afinities.iloc[idx])
         
-    #     for i,c1 in compounds.iterrows():
-    #         # print(f"{i}:{c1}")
-    #         # if i=='CL1':
-    #         compound_name = i
-    #         compound_competition_ratio_value = float(c1)
-    #         if compound_competition_ratio_value !=compound_competition_ratio_value:
-    #             # We are checking for nan values since we have missing data here and hence this can not be utilised for the ML training.
-    #             continue
-    #         ecfp4_fingerprint = compounds_info[compound_name]['ECFP_4']
-    #         encoded_peptide_representation = encode_sequence(peptide,protein_sequence,position_of_site)
-    #         if (len(encoded_peptide_representation)>0):
-    #             combined_representation = np.concatenate([encoded_peptide_representation, np.array(list(ecfp4_fingerprint), dtype=int)])
-    #             combined_data.append((combined_representation,compound_competition_ratio_value))
+        for i,c1 in compounds.iterrows():
+            # print(f"{i}:{c1}")
+            # if i=='CL1':
+            compound_name = i
+            compound_competition_ratio_value = float(c1)
+            if compound_competition_ratio_value !=compound_competition_ratio_value:
+                # We are checking for nan values since we have missing data here and hence this can not be utilised for the ML training.
+                continue
+            ecfp4_fingerprint = compounds_info[compound_name]['ECFP_4']
+            encoded_peptide_representation = encode_sequence(peptide,protein_sequence,position_of_site)
+            if (len(encoded_peptide_representation)>0):
+                combined_representation = np.concatenate([encoded_peptide_representation, np.array(list(ecfp4_fingerprint), dtype=int)])
+                combined_data.append((combined_representation,compound_competition_ratio_value))
                 
-    #         else:
-    #             # Here we have an exception where we dont have the correct peptide sequence selected.
-    #             continue
+            else:
+                # Here we have an exception where we dont have the correct peptide sequence selected.
+                continue
     
-    # with open("combined_representation.pkl", "wb") as fp:   #Pickling
-    #     pickle.dump(combined_data, fp)
-    with open("combined_representation.pkl", "rb") as fp:   # Unpickling
-        combined_data = pickle.load(fp)
+    with open("combined_representation.pkl", "wb") as fp:   #Pickling
+        pickle.dump(combined_data, fp)
+    # with open("combined_representation.pkl", "rb") as fp:   # Unpickling
+    #     combined_data = pickle.load(fp)
     # Shuffle the data to make sure that we pick a random protein representation for training and testing
     np.random.shuffle(combined_data)
     print('Data Loaded, lets train')
@@ -174,58 +172,16 @@ def train_model(dropout,l2_reguliser,lr,batch_size):
     # scaler.inverse_transform(Y_train_scaled.reshape(-1, 1))
     combined_shape = X_train.shape[1]  # Assuming ecfp4_fingerprint is the fixed-length ECFP4 string
     Y_test_scaled = scaler.fit(y_test.reshape(-1, 1))
-    from pickle import dump
+
     dump(scaler, open(f'output_model_One_Bi-LSTM_epochs10_all_data_{dropout}_{l2_reguliser}_{lr}_{batch_size}_scaler.pkl', 'wb'))
     
     # # Reshape input data to match LSTM input shape
     X_train_reshaped = X_train.reshape(-1, 1, combined_shape)
     X_test_reshaped = X_test.reshape(-1, 1, combined_shape)
 
-    # input_shape = X_train.shape[1:]  # Shape of the combined representation
-    # X_train_reshaped = X_train.reshape(-1, input_shape[0], input_shape[1])
-    # X_test_reshaped = X_test.reshape(-1, input_shape[0], input_shape[1])
-
-
-    # del X_train_reshaped 
-    # del Y_train_scaled
-
-    # with open("X_train_split.pkl", "wb") as fp:   #Pickling
-    #     pickle.dump(X_train_split, fp)
-    # with open("X_val_split.pkl", "wb") as fp:   #Pickling
-    #     pickle.dump(X_val_split, fp)
-    # with open("y_train_split.pkl", "wb") as fp:   #Pickling
-    #     pickle.dump(y_train_split, fp)
-    # with open("y_val_split.pkl", "wb") as fp:   #Pickling
-    #     pickle.dump(y_val_split, fp)
-    # with open("X_test_reshaped.pkl", "wb") as fp:   #Pickling
-    #     pickle.dump(X_test_reshaped, fp)
-    # with open("Y_test_scaled.pkl", "wb") as fp:   #Pickling
-    #     pickle.dump(Y_test_scaled, fp)
-
-
-    # with open("X_train_split.pkl", "rb") as fp:   # Unpickling
-    #     X_train_split = pickle.load(fp)
-    # with open("X_val_split.pkl", "rb") as fp:   # Unpickling
-    #     X_val_split = pickle.load(fp)
-    # with open("y_train_split.pkl", "rb") as fp:   # Unpickling
-    #     y_train_split = pickle.load(fp)
-    # with open("y_val_split.pkl", "rb") as fp:   # Unpickling
-    #     y_val_split = pickle.load(fp)
-    # with open("X_test_reshaped.pkl", "rb") as fp:   # Unpickling
-    #     X_test_reshaped = pickle.load(fp)
-    # with open("Y_test_scaled.pkl", "rb") as fp:   # Unpickling
-    #     Y_test_scaled = pickle.load(fp)
-
-
-    
-    # Create the Random Forest model
-    # modelq = RandomForestRegressor(random_state=42)
-    # modelq.fit(X_train_split, y_train_split)
-    # model = SVR()
     from tensorflow.keras.optimizers import Adam
     from tensorflow.keras import regularizers
     from tensorflow.keras.callbacks import EarlyStopping
-    
     
     early_stopping = EarlyStopping(
         monitor='val_loss',
@@ -236,7 +192,6 @@ def train_model(dropout,l2_reguliser,lr,batch_size):
     
     model = Sequential()
     model.add(Bidirectional(LSTM(64, activation='relu',recurrent_dropout=dropout), input_shape=(1, combined_shape)))
-    # model.add(LSTM(64, input_shape=(1, combined_shape)))
     model.add(Dense(1))
     model.compile(loss='mean_squared_error', optimizer='adam')
 
@@ -265,8 +220,7 @@ def train_model(dropout,l2_reguliser,lr,batch_size):
     print("Mean Squared Error (MSE):", mse)
     print("Mean Absolute Error (MAE):", mae)
     print("R-squared (R2) Score:", r2)
-    
-    import matplotlib.pyplot as plt 
+
     # Extract training and validation loss
     train_loss = history.history['loss']
     val_loss = history.history['val_loss']
@@ -284,12 +238,7 @@ def train_model(dropout,l2_reguliser,lr,batch_size):
 
 if __name__ == "__main__":
     import argparse
-    # Defaults
-    dropout=0.2
-    l2_reguliser=0.001
-    lr=0.001
-    batch_size=32
-    
+    # Defaults   
     # Take different params for training
     """Run CLI."""
     parser = argparse.ArgumentParser(

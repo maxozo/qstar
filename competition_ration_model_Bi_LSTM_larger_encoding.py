@@ -1,30 +1,31 @@
 #!/usr/bin/env python
 
-
 __date__ = '2023-30-05'
 __version__ = '0.0.1'
+__author__ = 'M.Ozols'
 
-from tensorflow.keras.layers import Embedding
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, LSTM, Bidirectional,Dropout
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.svm import SVR
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_curve, auc
-# from gensim.models import Word2Vec
 import requests
 import re
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import pickle
+import matplotlib.pyplot as plt 
+from collections import Counter
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras import regularizers
+from tensorflow.keras.callbacks import EarlyStopping
+from pickle import dump
 
 # This code is used to train the model that is capable in taking a the tuple (reactive fragment, target protein) and 
 # acuratelly predict the competition ratio of 286 compounds (reactive fragments) listed in data/compounds.txt
-
-# The input is a tuple where we have ('reactive fragmant','protein') 
-predicting_tuple = ('CL1','GSTO1_HUMAN')
+# The input is a tuple where we have ('reactive fragmant','protein'):
+# predicting_tuple = ('CL1','GSTO1_HUMAN')
 
 
 def get_protein_sequence(uniprot_id,get_protein_sequence):
@@ -47,7 +48,6 @@ def get_protein_sequence(uniprot_id,get_protein_sequence):
 
 
 def AA_Frequencies(peptide,position_of_site):
-    from collections import Counter
     amino_acids = 'ACDEFGHIKLMNPQRSTVWY'
     counts=Counter(peptide)
     aa = position_of_site[0]
@@ -134,8 +134,9 @@ def train_model(dropout,l2_reguliser,lr,batch_size,fragment_size):
     longest_peptide = max(list(sequence_infos['Peptide Sequence']), key=len)
     for idx,row1 in sequence_infos.iterrows():
         print(idx)
-        if idx==213:
-            print('ere')
+        if idx>2500:
+            # We skipp the folowing proteins for this chalange, just to indicate approaches that would be taken for building model for this task.
+            continue
         peptide = sequence_infos.iloc[idx]['Peptide Sequence']
         uniprot_id = sequence_infos.iloc[idx]['Uniprot ID'].split('|')[1]
         
@@ -197,59 +198,14 @@ def train_model(dropout,l2_reguliser,lr,batch_size,fragment_size):
     # scaler.inverse_transform(Y_train_scaled.reshape(-1, 1))
     combined_shape = X_train.shape[1]  # Assuming ecfp4_fingerprint is the fixed-length ECFP4 string
     Y_test_scaled = scaler.transform(y_test.reshape(-1, 1))
-    from pickle import dump
+
     dump(scaler, open(f'output_model_One_Bi-LSTM_epochs10_all_data_{coment}__{fragment_size}__{dropout}_{l2_reguliser}_{lr}_{batch_size}_scaler.pkl', 'wb'))
     
     # # Reshape input data to match LSTM input shape
     X_train_reshaped = X_train.reshape(-1, 1, combined_shape)
     X_test_reshaped = X_test.reshape(-1, 1, combined_shape)
-
-    # input_shape = X_train.shape[1:]  # Shape of the combined representation
-    # X_train_reshaped = X_train.reshape(-1, input_shape[0], input_shape[1])
-    # X_test_reshaped = X_test.reshape(-1, input_shape[0], input_shape[1])
-
-
-    # del X_train_reshaped 
-    # del Y_train_scaled
-
-    # with open("X_train_split.pkl", "wb") as fp:   #Pickling
-    #     pickle.dump(X_train_split, fp)
-    # with open("X_val_split.pkl", "wb") as fp:   #Pickling
-    #     pickle.dump(X_val_split, fp)
-    # with open("y_train_split.pkl", "wb") as fp:   #Pickling
-    #     pickle.dump(y_train_split, fp)
-    # with open("y_val_split.pkl", "wb") as fp:   #Pickling
-    #     pickle.dump(y_val_split, fp)
-    # with open("X_test_reshaped.pkl", "wb") as fp:   #Pickling
-    #     pickle.dump(X_test_reshaped, fp)
-    # with open("Y_test_scaled.pkl", "wb") as fp:   #Pickling
-    #     pickle.dump(Y_test_scaled, fp)
-
-
-    # with open("X_train_split.pkl", "rb") as fp:   # Unpickling
-    #     X_train_split = pickle.load(fp)
-    # with open("X_val_split.pkl", "rb") as fp:   # Unpickling
-    #     X_val_split = pickle.load(fp)
-    # with open("y_train_split.pkl", "rb") as fp:   # Unpickling
-    #     y_train_split = pickle.load(fp)
-    # with open("y_val_split.pkl", "rb") as fp:   # Unpickling
-    #     y_val_split = pickle.load(fp)
-    # with open("X_test_reshaped.pkl", "rb") as fp:   # Unpickling
-    #     X_test_reshaped = pickle.load(fp)
-    # with open("Y_test_scaled.pkl", "rb") as fp:   # Unpickling
-    #     Y_test_scaled = pickle.load(fp)
-
-
     
-    # Create the Random Forest model
-    # modelq = RandomForestRegressor(random_state=42)
-    # modelq.fit(X_train_split, y_train_split)
-    # model = SVR()
-    from tensorflow.keras.optimizers import Adam
-    from tensorflow.keras import regularizers
-    from tensorflow.keras.callbacks import EarlyStopping
-    
-    
+    # Erly stopping is defined to monitor the validation loss while training loss is improving, to avoid overtaining the model.
     early_stopping = EarlyStopping(
         monitor='val_loss',
         verbose=1,
@@ -258,11 +214,9 @@ def train_model(dropout,l2_reguliser,lr,batch_size,fragment_size):
         restore_best_weights=True)
     
     model = Sequential()
-    # model.add(LSTM(64, activation='relu',recurrent_dropout=dropout), input_shape=(1, combined_shape))
     model.add(Bidirectional(LSTM(254, activation='relu',recurrent_dropout=dropout), input_shape=(1, combined_shape)))
     model.add(Dense(56))
     model.add(Dropout(dropout))
-    # model.add(LSTM(64, input_shape=(1, combined_shape)))
     model.add(Dense(1))
     model.compile(loss='mean_squared_error', optimizer='adam')
 
@@ -292,8 +246,8 @@ def train_model(dropout,l2_reguliser,lr,batch_size,fragment_size):
     print("Mean Absolute Error (MAE):", mae)
     print("R-squared (R2) Score:", r2)
     
-    import matplotlib.pyplot as plt 
-    # Extract training and validation loss
+
+    # Extract training and validation loss and plot it over time to se the training performance.
     train_loss = history.history['loss']
     val_loss = history.history['val_loss']
     epochs = range(1, len(train_loss) + 1)

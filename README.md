@@ -6,15 +6,23 @@ QSAR machine learning challenge
 Develop a machine learning model to predict the binding affinities of reactive fragments and protein targets.
 
 
+
+## Dataset
+The dataset is a subset of [Kuljanin et al.](https://www.nature.com/articles/s41587-020-00778-3) and consists of a set of reactive fragments and their corresponding binding affinities to specific protein targets (Dataset9):
+- For each reactive fragment, we provide SMILES string and ECFP4 feature
+- For each protein target, we provide Uniprot ID, gene symbol, and the binding site position
+- Binding affinity is provided as competition ratios
 ## Quickstart
 
 1. Clone the repo
-2. Make sure you have python installed and all the requirements.txt satisfied.
-3. Run the predictions:
+2. Make sure you have python installed and all the [requirements.txt](https://github.com/maxozo/qstar/blob/main/requirements.txt) satisfied.
+3. Run the predictions code:
 `python predict_protein.py` 
+
+note - this model has been trained only with 10 epochs and a subset of 50% peptides provided in chalange and is only indicatory of the approaches taken and not a fully trained, accurate mode. 
 ## Discussion:
 
-While the current model achieved an R2 score of approximately 0.24, indicating that only 24% of the data is explained by the model, there are several avenues to further improve its performance.
+While the current model achieved an R2 score of approximately 0.24, indicating that only 24% of the data is explained by the model, there are several avenues to further improve its performance (besides training with more epochs and all the data available).
 
 ![image info](https://github.com/maxozo/qstar/blob/main/images/output_model_One_Bi-LSTM_epochs10_all_data_0.5_0.001_0.001_32.png)
 
@@ -37,7 +45,7 @@ In conclusion, to improve the model's performance, a combination of domain knowl
 The ML challenge involves predicting the binding affinity for peptide sequences obtained through LC-MS tryptic digest, where lysine (K) and arginine (R) residues are present at the N and C termini. Two ML methods, namely RNN and CNN, were considered suitable for this challenge. RNN is well-suited for sequential data analysis, while both CNN and RNN has previously demonstrated effectiveness in predicting protein cleavage affinities in enzymatic digests, assumtion was made that similar approach can be used for compound competition ratio predictions.
 
 
-To address the issue of peptide length not necessarily being representative of binding affinities, the peptides were [standardized to a fixed length defined as feature_length*2](https://github.com/maxozo/qstar/blob/7e5186b7eb3642f8ce82ea93fb0b1d06f017e415/competition_ration_model_Bi_LSTM_larger_encoding.py#L63C5-L119). This was achieved by querying the Uniprot sequence database to obtain all reviewed protein sequences available on 29/05/2013. The code iterates through each protein provided in competition-ratios.tsv and each compound in compounds.txt, extracting the peptides centered around the amino acid of interest indicated in competition-ratios.tsv.
+To address the issue of peptide length not necessarily being representative of binding affinities, the peptides were [standardized to a fixed length defined as feature_length*2](https://github.com/maxozo/qstar/blob/7e5186b7eb3642f8ce82ea93fb0b1d06f017e415/competition_ration_model_Bi_LSTM_larger_encoding.py#L63C5-L119). This was achieved by querying the Uniprot sequence database to obtain all reviewed protein sequences available on 29/05/2013 stored in [data](https://github.com/maxozo/qstar/tree/main/data). The code iterates through each protein provided in competition-ratios.tsv and each compound in compounds.txt, extracting the peptides centered around the amino acid of interest indicated in competition-ratios.tsv.
 
 For feature engineering, the amino acid sequences were encoded using one-hot encoding, with an additional positional argument for each amino acid. In the CNN model, one-hot encoding was represented as a matrix where each row corresponds to the one-hot encoding of a single amino acid.
 
@@ -45,9 +53,9 @@ Considering the potential importance of the peptides emitted by LC-MS, the pepti
 
 In addition to the sequence and amino acid frequency encoding, the ECFP_4 string was included as a feature, as specific side chains may chemically interact with the protein to facilitate binding.
 
-The code was designed to allow for the evaluation of different learning rates, dropout rates, feature lengths, and L2 regularization methods.
+The code was designed to allow for the evaluation of different learning rates, dropout rates, feature lengths, and L2 regularization method and for an easy dynamic excahange of model arhitectures.
 
-The protein datasets can be predicted using the predict_protein.py code by providing the compound ID and protein ID as a tuple. This will encode the sequence accordingly and predict the binding affinities for the model.
+The protein datasets can be predicted using the predict_protein.py code by providing the compound ID and protein ID as a tuple. This will encode the sequence accordingly and predict the binding affinities for the model - see quickstart.
 
 Two arhitectures that were considered are: 
 ### RNN
@@ -97,12 +105,6 @@ Overall, this model architecture combines a CNN for image feature extraction wit
 Similar approaches combining CNNs and auxiliary data have been used in the field of proteomics for various tasks. For example, in protein structure prediction, CNNs have been employed to analyze protein sequences or structural motifs, while auxiliary data such as evolutionary conservation scores or physicochemical properties have been used to enrich the model's understanding of protein structure. The combination of image-based features and auxiliary data allows for a more comprehensive representation of the proteins and can improve predictive performance in various proteomic applications.
 
 
-
-## Dataset
-The dataset is a subset of [Kuljanin et al.](https://www.nature.com/articles/s41587-020-00778-3) and consists of a set of reactive fragments and their corresponding binding affinities to specific protein targets (Dataset9):
-- For each reactive fragment, we provide SMILES string and ECFP4 feature
-- For each protein target, we provide Uniprot ID, gene symbol, and the binding site position
-- Binding affinity is provided as competition ratios
 
 ### Dataset file description
 `competition-ratios.txt`
