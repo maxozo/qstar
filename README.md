@@ -5,6 +5,23 @@ QSAR machine learning challenge
 ## Objective
 Develop a machine learning model to predict the binding affinities of reactive fragments and protein targets.
 
+## Discussion:
+
+While the current model achieved an R2 score of approximately 0.24, indicating that only 24% of the data is explained by the model, there are several avenues to further improve its performance.
+
+Firstly, leveraging domain knowledge about different compounds and their representative classes can be valuable. By training separate models for each class and utilizing transfer learning, it is possible to fine-tune the models specifically for a particular compound within a broader binding affinity class.
+
+If domain knowledge is lacking, exploring clustering analysis of ECFP_4 signatures can be beneficial. This analysis can reveal compounds that exhibit similarity in terms of their chemical interactions, which can inform the creation of subgroups or allow for the development of compound-specific models.
+
+In addition to ECFP_4 signatures, other chemical features or molecular descriptors can be incorporated into the model. These features could capture important characteristics of the compounds that influence their binding affinity, providing additional information to enhance the model's predictive capabilities.
+
+Furthermore, reducing the dimensionality of the ECFP_4 signatures using techniques such as principal component analysis (PCA) or t-distributed stochastic neighbor embedding (t-SNE) may be effective. This reduction can help retain the most informative features while discarding redundant or noise-inducing components.
+
+Consideration should also be given to incorporating additional biological information, such as secondary structure annotations, solvent accessibility, or physicochemical properties of amino acids. These features can provide valuable insights into the structural and functional characteristics of the peptides, potentially improving the model's ability to capture the underlying patterns and predict binding affinities more accurately.
+
+Moreover, experimenting with different model architectures, such as stacked RNNs, attention mechanisms, or transformer models, may yield better results. These advanced architectures have demonstrated success in various sequence-related tasks and may capture more complex dependencies within the peptide sequences.
+
+In conclusion, to improve the model's performance, a combination of domain knowledge, advanced feature engineering, incorporation of chemical and biological information, dimensionality reduction techniques, and exploration of different model architectures should be considered.
 
 ## Description:
 
