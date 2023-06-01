@@ -60,7 +60,7 @@ def AA_Frequencies(peptide,position_of_site):
     Freq_encoding = np.concatenate([Freq_encoding, np.array([int(position)])])
     return Freq_encoding
 
-def encode_sequence(peptide,protein_sequence,position_of_site):
+def encode_sequence(peptide,protein_sequence,position_of_site,fragment_size):
     aa = position_of_site[0]
     peptide_pre= peptide
     peptide=peptide_pre
@@ -118,7 +118,7 @@ def encode_sequence(peptide,protein_sequence,position_of_site):
     encoded_sequence = np.concatenate(encoded_sequence)
     return encoded_sequence
 
-def train_model(dropout,l2_reguliser,lr,batch_size):
+def train_model(dropout,l2_reguliser,lr,batch_size,fragment_size):
     print(f'output_model_One_CNN_epochs10_all_data_{dropout}_{l2_reguliser}_{lr}_{batch_size}')
     # here we train the model based on the data provided by GSK which is a subset of https://www.nature.com/articles/s41587-020-00778-3#Sec35
     compounds_info = pd.read_csv('data/compounds.txt',sep='\t',index_col=0).T
@@ -385,6 +385,6 @@ if __name__ == "__main__":
     lr = options.lr
     batch_size = options.batch_size
     coment = options.coment
-    train_model(dropout,l2_reguliser,lr,batch_size)
+    train_model(dropout,l2_reguliser,lr,batch_size,fragment_size)
     
 print('Done')

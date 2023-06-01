@@ -4,31 +4,47 @@ from functions import get_protein_sequence
 import re
 import pandas as pd
 import numpy as np
-from competition_ration_model_Bi_LSTM import encode_sequence
+from competition_ration_model_Bi_LSTM_larger_encoding import encode_sequence, AA_Frequencies
 from sklearn.preprocessing import StandardScaler
 from pickle import load
-
+import os
+cwd = os.path.dirname(os.path.realpath(__file__))
 def predict_protein(predicting_tuple,model):
     
-    scaler = load(open('/lustre/scratch123/hgi/projects/huvec/analysis/ml/qstar/output_model_One_Bi-LSTM_epochs10_all_data_0.5_0.005_0.001_32_scaler.pkl', 'rb'))
-    compounds_info = pd.read_csv('/lustre/scratch123/hgi/projects/huvec/analysis/ml/qstar/data/compounds.txt',sep='\t',index_col=0).T
+    scaler = load(open(f'{cwd}/models/output_model_One_Bi-LSTM_epochs10_all_data_all_compounds_first2000__10__0.1_0.0001_0.001_32_scaler.pkl', 'rb'))
+    compounds_info = pd.read_csv('data/compounds.txt',sep='\t',index_col=0).T
+    fragment_size = int(model.split('__')[1])
     model = tf.keras.models.load_model(model)
-    prefix_sufix='0000000000'
+    ps_ee=fragment_size+2
+    prefix_sufix='0'*ps_ee
+
     protein_sequence = get_protein_sequence(predicting_tuple[1])
     protein_sequence = prefix_sufix+protein_sequence+prefix_sufix
     
     # locate all the C residues
     indices_object = re.finditer(pattern='C', string=protein_sequence)
     indices = [index.start() for index in indices_object]
+    
+    indices_objectR = re.finditer(pattern='R', string=protein_sequence)
+    indicesR = [index.start() for index in indices_objectR]
+    indices_objectK = re.finditer(pattern='K', string=protein_sequence)
+    indicesK = [index.start() for index in indices_objectK]
+    indicesR.extend(indicesK)
+    indicesR.sort()
     predict_data = []
+    positions=[]
     for idx1 in indices:
         # Now we encode each of these and return the value for each based on the model trained.
         position=idx1+1
+        
         peptide = protein_sequence[position-1-10:position-1+10]
+        
         ecfp4_fingerprint = compounds_info[predicting_tuple[0]]['ECFP_4']
         position_of_site=f"{protein_sequence[position-1]}{position}"
-        encoded_peptide_representation = encode_sequence(peptide,protein_sequence,position_of_site)
-        combined_representation = np.concatenate([encoded_peptide_representation, np.array(list(ecfp4_fingerprint), dtype=int)])
+        positions.append(position_of_site)
+        AA_Freq_string = AA_Frequencies(peptide,position_of_site)
+        encoded_peptide_representation = encode_sequence(peptide,protein_sequence,position_of_site,fragment_size)
+        combined_representation = np.concatenate([encoded_peptide_representation,AA_Freq_string,np.array(list(ecfp4_fingerprint), dtype=int)])
         predict_data.append(combined_representation)
     
     pr = np.array(predict_data)
@@ -36,10 +52,12 @@ def predict_protein(predicting_tuple,model):
     predict_data_reshaped = pr.reshape(-1, 1, combined_shape)
     predictions = model.predict(predict_data_reshaped)
     predictions_inverse = scaler.inverse_transform(predictions)
-    print('Done')
+    predicted_values = predictions_inverse/100
+    predicted_values = pd.DataFrame(predicted_values,index=positions,columns=[predicting_tuple[0]])
+    return predicted_values
 
 if __name__ == "__main__":
-    model = '/lustre/scratch123/hgi/projects/huvec/analysis/ml/qstar/output_model_One_Bi-LSTM_epochs10_all_data_0.2_0.001_0.001_32'
+    model = f'{cwd}/models/output_model_One_Bi-LSTM_epochs10_all_data_all_compounds_first2000__10__0.1_0.0001_0.001_32'
     predicting_tuple = ('CL1','GSTO1_HUMAN')
-    
-    predict_protein(predicting_tuple,model)
+    predicted_values = predict_protein(predicting_tuple,model)
+    predicted_values.to_csv(f'Predicted_Values_{predicting_tuple[0]}__{predicting_tuple[1]}')

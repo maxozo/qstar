@@ -1,7 +1,7 @@
 def get_protein_sequence(uniprot_id):
     import pandas as pd
     import requests
-    get_protein_sequence= pd.read_csv('/lustre/scratch123/hgi/projects/huvec/analysis/ml/qstar/data/uniprot-compressed_true_download_true_fields_accession_2Cprotein_nam-2023.05.29-17.52.20.88.tsv.gz',compression='gzip',sep='\t')
+    get_protein_sequence= pd.read_csv('data/uniprot-compressed_true_download_true_fields_accession_2Cprotein_nam-2023.05.29-17.52.20.88.tsv.gz',compression='gzip',sep='\t')
     try:
         sequence = get_protein_sequence[get_protein_sequence['Entry']==uniprot_id]['Sequence'].values[0]
     except:

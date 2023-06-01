@@ -114,7 +114,7 @@ def encode_sequence_CNN(peptide,protein_sequence,position_of_site):
     combined_representation = np.vstack(encoded_sequence)
     return combined_representation
 
-def encode_sequence(peptide,protein_sequence,position_of_site):
+def encode_sequence(peptide,protein_sequence,position_of_site,fragment_size):
     aa = position_of_site[0]
     peptide_pre= peptide
     peptide=peptide_pre
@@ -161,7 +161,7 @@ def encode_sequence(peptide,protein_sequence,position_of_site):
             continue
         else:
             try:
-                encoding = np.eye(len(amino_acids))[1]
+                encoding = np.eye(len(amino_acids))[amino_acids.index(amino_acid)]
             except:
                 encoding = np.zeros(len(amino_acids))
             # We may want to rething this encoding as it utilises the length of the peptide
@@ -172,7 +172,7 @@ def encode_sequence(peptide,protein_sequence,position_of_site):
     encoded_sequence = np.concatenate(encoded_sequence)
     return encoded_sequence
 
-def train_model(dropout,l2_reguliser,lr,batch_size):
+def train_model(dropout,l2_reguliser,lr,batch_size,fragment_size):
     print(f'output_model_One_CNN_epochs10_all_data_{dropout}_{l2_reguliser}_{lr}_{batch_size}')
     # here we train the model based on the data provided by GSK which is a subset of https://www.nature.com/articles/s41587-020-00778-3#Sec35
     compounds_info = pd.read_csv('data/compounds.txt',sep='\t',index_col=0).T
@@ -216,7 +216,7 @@ def train_model(dropout,l2_reguliser,lr,batch_size):
             compound_competition_ratio_value =compound_competition_ratio_value *100
             ecfp4_fingerprint = compounds_info[compound_name]['ECFP_4']
             AA_Freq_string = AA_Frequencies(peptide,position_of_site)
-            encoded_peptide_representation = encode_sequence_CNN(peptide,protein_sequence,position_of_site)
+            encoded_peptide_representation = encode_sequence_CNN(peptide,protein_sequence,position_of_site,fragment_size)
             if (len(encoded_peptide_representation)>0):
                 combined_representation = np.concatenate([AA_Freq_string,np.array(list(ecfp4_fingerprint), dtype=int)])
                 # combined_representation = np.concatenate([d, np.array(list(ecfp4_fingerprint), dtype=int)])
@@ -457,6 +457,6 @@ if __name__ == "__main__":
     lr = options.lr
     batch_size = options.batch_size
     coment = options.coment
-    train_model(dropout,l2_reguliser,lr,batch_size)
+    train_model(dropout,l2_reguliser,lr,batch_size,fragment_size)
     
 print('Done')
