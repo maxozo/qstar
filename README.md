@@ -22,41 +22,21 @@ The code was designed to allow for the evaluation of different learning rates, d
 
 The protein datasets can be predicted using the predict_protein.py code by providing the compound ID and protein ID as a tuple. This will encode the sequence accordingly and predict the binding affinities for the model.
 
-
-## Discussion:
-
-While the current model achieved an R2 score of approximately 0.24, indicating that only 24% of the data is explained by the model, there are several avenues to further improve its performance.
-
-Firstly, leveraging domain knowledge about different compounds and their representative classes can be valuable. By training separate models for each class and utilizing transfer learning, it is possible to fine-tune the models specifically for a particular compound within a broader binding affinity class.
-
-If domain knowledge is lacking, exploring clustering analysis of ECFP_4 signatures can be beneficial. This analysis can reveal compounds that exhibit similarity in terms of their chemical interactions, which can inform the creation of subgroups or allow for the development of compound-specific models.
-
-In addition to ECFP_4 signatures, other chemical features or molecular descriptors can be incorporated into the model. These features could capture important characteristics of the compounds that influence their binding affinity, providing additional information to enhance the model's predictive capabilities.
-
-Furthermore, reducing the dimensionality of the ECFP_4 signatures using techniques such as principal component analysis (PCA) or t-distributed stochastic neighbor embedding (t-SNE) may be effective. This reduction can help retain the most informative features while discarding redundant or noise-inducing components.
-
-Consideration should also be given to incorporating additional biological information, such as secondary structure annotations, solvent accessibility, or physicochemical properties of amino acids. These features can provide valuable insights into the structural and functional characteristics of the peptides, potentially improving the model's ability to capture the underlying patterns and predict binding affinities more accurately.
-
-Moreover, experimenting with different model architectures, such as stacked RNNs, attention mechanisms, or transformer models, may yield better results. These advanced architectures have demonstrated success in various sequence-related tasks and may capture more complex dependencies within the peptide sequences.
-
-In conclusion, to improve the model's performance, a combination of domain knowledge, advanced feature engineering, incorporation of chemical and biological information, dimensionality reduction techniques, and exploration of different model architectures should be considered.
-
-
-
 ## competition_ration_model_Bi_LSTM_larger_encoding.py
+
 The script starts with some import statements to import necessary libraries and modules such as TensorFlow, scikit-learn, NumPy, pandas, etc.
 
-The script defines a function called get_protein_sequence that takes a UniProt ID as input and retrieves the corresponding protein sequence using either a preloaded dataset or by making a web request to the UniProt website.
+The script defines a function called `get_protein_sequence` that takes a UniProt ID as input and retrieves the corresponding protein sequence using either a preloaded dataset or by making a web request to the UniProt website.
 
-Another function called AA_Frequencies is defined, which calculates the amino acid frequencies for a given peptide sequence and position of the site.
+Another function called `AA_Frequencies` is defined, which calculates the amino acid frequencies for a given peptide sequence and position of the site.
 
-The encode_sequence function encodes a peptide sequence, protein sequence, and position of the site into a numerical representation using one-hot encoding and positional encoding.
+The `encode_sequence` function encodes a peptide sequence, protein sequence, and position of the site into a numerical representation using one-hot encoding and positional encoding.
 
-The main function train_model is defined, which performs the training of the model. It loads data from various files including compound information, competition ratios, protein sequences, etc. Then it iterates over the data to prepare the combined representations of the encoded peptide sequences, ECFP4 fingerprints, and other features. These combined representations and corresponding competition ratios are stored in a list called combined_data.
+The main function `train_model` is defined, which performs the training of the model. It loads data from various files including compound information, competition ratios, protein sequences, etc. Then it iterates over the data to prepare the combined representations of the encoded peptide sequences, ECFP4 fingerprints, and other features. These combined representations and corresponding competition ratios are stored in a list called `combined_data`.
 
-The combined_data list is shuffled and split into training and testing sets. The input features (combined representations) and target values (competition ratios) are extracted from the split data.
+The `combined_data` list is shuffled and split into training and testing sets. The input features (combined representations) and target values (competition ratios) are extracted from the split data.
 
-The script applies standardization to the target values using scikit-learn's StandardScaler to normalize the data.
+The script applies standardization to the target values using scikit-learn's `StandardScaler` to normalize the data.
 
 The input features are reshaped to match the LSTM input shape.
 
@@ -64,7 +44,7 @@ The model architecture is defined using TensorFlow's Keras API. It consists of a
 
 The model is compiled with the Adam optimizer and mean squared error loss function.
 
-Finally, the model is trained using the training data and the training history is stored in the history variable.
+Finally, the model is trained using the training data, and the training history is stored in the `history` variable.
 
 ## competition_ration_model_CNN_larger_encoding.py
 
