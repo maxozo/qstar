@@ -5,6 +5,13 @@ QSAR machine learning challenge
 ## Objective
 Develop a machine learning model to predict the binding affinities of reactive fragments and protein targets.
 
+
+## Quickstart
+
+1. Clone the repo
+2. Make sure you have python installed and all the requirements.txt satisfied.
+3. Run the predictions:
+`python predict_protein.py` 
 ## Discussion:
 
 While the current model achieved an R2 score of approximately 0.24, indicating that only 24% of the data is explained by the model, there are several avenues to further improve its performance.

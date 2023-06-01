@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+
+
+__date__ = '2023-30-05'
+__version__ = '0.0.1'
 # This code will take the model and a tuple of protein name and compound and predict each of the C aa competition ratios.
 import tensorflow as tf
 from functions import get_protein_sequence
@@ -57,7 +62,46 @@ def predict_protein(predicting_tuple,model):
     return predicted_values
 
 if __name__ == "__main__":
+    
+    import argparse
+
+    # This is a software for predicting compound binding ratios.
+    # Currently version 1 - better feature selection should be incorporated.
+    
+    """Run CLI."""
+    parser = argparse.ArgumentParser(
+        description="""
+            Performs predictions of compound and protein.
+            """
+    )
+
+    parser.add_argument(
+        '-v', '--version',
+        action='version',
+        version='%(prog)s {version}'.format(version=__version__)
+    )
+    
+    parser.add_argument(
+        '--compound',
+        action='store',
+        dest='compound',
+        default='CL1',
+        type=str
+    )    
+
+    parser.add_argument(
+        '--protein',
+        action='store',
+        dest='protein',
+        default='GSTO1_HUMAN',
+        type=str
+    )    
+    
+    options = parser.parse_args()     
+    protein = options.protein
+    compound=options.compound
+    
     model = f'{cwd}/models/output_model_One_Bi-LSTM_epochs10_all_data_all_compounds_first2000__10__0.1_0.0001_0.001_32'
-    predicting_tuple = ('CL1','GSTO1_HUMAN')
+    predicting_tuple = (compound,protein)
     predicted_values = predict_protein(predicting_tuple,model)
-    predicted_values.to_csv(f'Predicted_Values_{predicting_tuple[0]}__{predicting_tuple[1]}')
+    predicted_values.to_csv(f'Predicted_Values_{predicting_tuple[0]}__{predicting_tuple[1]}.tsv',sep='\t')
