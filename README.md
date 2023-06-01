@@ -9,6 +9,8 @@ Develop a machine learning model to predict the binding affinities of reactive f
 
 While the current model achieved an R2 score of approximately 0.24, indicating that only 24% of the data is explained by the model, there are several avenues to further improve its performance.
 
+![image info](https://github.com/maxozo/qstar/blob/main/images/output_model_One_Bi-LSTM_epochs10_all_data_0.5_0.001_0.001_32.png)
+
 Firstly, leveraging domain knowledge about different compounds and their representative classes can be valuable. By training separate models for each class and utilizing transfer learning, it is possible to fine-tune the models specifically for a particular compound within a broader binding affinity class.
 
 If domain knowledge is lacking, exploring clustering analysis of ECFP_4 signatures can be beneficial. This analysis can reveal compounds that exhibit similarity in terms of their chemical interactions, which can inform the creation of subgroups or allow for the development of compound-specific models.
